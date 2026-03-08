@@ -26,7 +26,8 @@
             <!-- 步驟一：上傳與設定 -->
             <div id="step-upload" class="text-center">
                 <h2 class="text-2xl font-bold mb-2">自動影片後製與錄製系統</h2>
-                <p class="text-slate-500 mb-6">請上傳您的照片或短影片素材，系統將自動為您生成帶有 3D 翻頁特效的專屬直式短影音。</p>
+                <!-- 修改提示文字 -->
+                <p class="text-slate-500 mb-6">請上傳您的照片或短影片素材，系統將自動為您生成帶有 3D 翻頁特效的專屬直式短影音（照片固定 10 秒，影片最高 40 秒）。</p>
                 
                 <label class="block w-full cursor-pointer bg-slate-50 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all p-12 rounded-xl group mb-4">
                     <div class="flex flex-col items-center">
@@ -73,7 +74,8 @@
             <div id="step-processing" class="hidden flex-col items-center justify-center py-12">
                 <div class="spinner mb-4"></div>
                 <h3 class="text-xl font-bold text-blue-900 mb-2">正在為您錄製影片...</h3>
-                <p class="text-slate-500 text-sm mb-6">請勿關閉視窗，正在進行 Canvas 逐格渲染與編碼</p>
+                <!-- 修改處理中提示文字 -->
+                <p class="text-slate-500 text-sm mb-6">請勿關閉視窗，正在進行 Canvas 逐格渲染與編碼 (照片 10 秒/影片最高 40 秒，請耐心等候)</p>
                 
                 <!-- A4 直立比例預覽畫布 -->
                 <div class="w-full max-w-sm mx-auto aspect-[210/297] bg-black rounded-lg overflow-hidden shadow-inner relative">
@@ -159,12 +161,15 @@
                             const video = document.createElement('video');
                             video.src = url;
                             video.muted = true; // 靜音以確保自動載入
-                            video.onloadeddata = () => resolve({ type: 'video', el: video, duration: video.duration || 5 });
+                            video.loop = true;  
+                            // [關鍵修改] 影片依原始長度，但最多不超過 40 秒 (加上 || 5 防呆避免讀取不到時長)
+                            video.onloadeddata = () => resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 40) });
                             video.onerror = reject;
                         } else {
                             const img = new Image();
                             img.src = url;
-                            img.onload = () => resolve({ type: 'image', el: img, duration: 3 }); 
+                            // [關鍵修改] 照片固定設定為 10 秒
+                            img.onload = () => resolve({ type: 'image', el: img, duration: 10 }); 
                             img.onerror = reject;
                         }
                     });
@@ -253,11 +258,12 @@
                 const media = mediaElements[i];
                 if (media.type === 'video') media.el.play();
                 
+                // 執行渲染，傳入 30 秒 (30000毫秒)
                 await renderMediaContent(media, media.duration * 1000);
                 
                 if (media.type === 'video') media.el.pause();
 
-                // 加入 3D 翻書轉場特效
+                // 加入 3D 翻書轉場特效 (維持 1.2 秒的柔和轉場)
                 if (i < mediaElements.length - 1) {
                     await renderTransition(media, mediaElements[i+1], 1200);
                 }
@@ -301,7 +307,7 @@
 
         async function renderMediaContent(media, durationMs) {
             const start = performance.now();
-            const actualDuration = Math.min(durationMs, 10000); // 限制單一片段最長 10 秒
+            const actualDuration = durationMs; // [關鍵修改] 移除 10 秒限制，確實執行傳入的 30 秒
             return new Promise(resolve => {
                 function draw(now) {
                     const progress = now - start;
