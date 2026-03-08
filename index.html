@@ -271,7 +271,8 @@
             // === 開始 Canvas 動畫排程 ===
             
             // 繪製精裝書封面 (書脊在左，停留 2.5 秒)
-            await renderBookCover(currentCompanyName, "影像與聲音創作集", 2500, false);
+            // 修改：加入第三個參數傳遞額外的標語，此處首頁留白
+            await renderBookCover(currentCompanyName, "影像與聲音創作集", "", 2500, false);
             
             for (let i = 0; i < mediaElements.length; i++) {
                 const media = mediaElements[i];
@@ -288,7 +289,8 @@
             }
             
             // 繪製精裝書封底 (書脊在右，停留 3 秒)
-            await renderBookCover("感謝觀賞", `指導講師專屬 / TEL: ${currentPhone}`, 3000, true);
+            // 修改：副標題統一帶入公司名稱，並新增傳遞第三行的促銷標語
+            await renderBookCover("感謝觀賞", `${currentCompanyName} / TEL: ${currentPhone}`, "來電詢問就送個人專屬影片一隻", 3000, true);
             
             recorder.stop();
         }
@@ -296,8 +298,8 @@
         // ================= 輔助繪製函數 =================
         function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // 繪製精裝實體書封面/封底 (支援自訂封面圖片)
-        async function renderBookCover(title, subtitle, durationMs, isBackCover = false) {
+        // 繪製精裝實體書封面/封底 (支援自訂封面圖片與第三行促銷文案)
+        async function renderBookCover(title, subtitle, footerText, durationMs, isBackCover = false) {
             const start = performance.now();
             return new Promise(resolve => {
                 function draw(now) {
@@ -393,6 +395,14 @@
                     ctx.fillStyle = '#fcd34d'; // 金黃色
                     ctx.shadowBlur = 8;
                     ctx.fillText(subtitle, textCenterX, canvas.height / 2 + 80);
+
+                    // 額外促銷標語 (新增)
+                    if (footerText) {
+                        ctx.font = '32px "Georgia", "Times New Roman", "Songti TC", serif';
+                        ctx.fillStyle = '#ffffff'; // 白色字體增加層次感
+                        ctx.shadowBlur = 4;
+                        ctx.fillText(footerText, textCenterX, canvas.height / 2 + 150);
+                    }
                     
                     // 重置環境變數，避免影響後續渲染
                     ctx.globalAlpha = 1.0;
