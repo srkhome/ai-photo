@@ -26,7 +26,7 @@
             <!-- 步驟一：上傳與設定 -->
             <div id="step-upload" class="text-center">
                 <h2 class="text-2xl font-bold mb-2">自動影片後製與錄製系統</h2>
-                <p class="text-slate-500 mb-6">請上傳您的照片或短影片素材，系統將自動為您生成帶有 3D 翻頁特效的專屬直式短影音（照片固定 10 秒，影片最高 40 秒）。</p>
+                <p class="text-slate-500 mb-6">請上傳您的照片或短影片素材，系統將自動為您生成帶有 3D 翻頁特效的專屬直式短影音（照片固定 10 秒，影片最高 20 秒）。</p>
                 
                 <label class="block w-full cursor-pointer bg-slate-50 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all p-12 rounded-xl group mb-4">
                     <div class="flex flex-col items-center">
@@ -79,7 +79,7 @@
             <div id="step-processing" class="hidden flex-col items-center justify-center py-12">
                 <div class="spinner mb-4"></div>
                 <h3 class="text-xl font-bold text-blue-900 mb-2">正在為您錄製影片...</h3>
-                <p class="text-slate-500 text-sm mb-6">請勿關閉視窗，正在進行 Canvas 逐格渲染與編碼 (照片 10 秒/影片最高 40 秒，請耐心等候)</p>
+                <p class="text-slate-500 text-sm mb-6">請勿關閉視窗，正在進行 Canvas 逐格渲染與編碼 (照片 10 秒/影片最高 20 秒，請耐心等候)</p>
                 
                 <!-- A4 直立比例預覽畫布 -->
                 <div class="w-full max-w-sm mx-auto aspect-[210/297] bg-black rounded-lg overflow-hidden shadow-inner relative">
@@ -179,8 +179,8 @@
                             video.src = url;
                             video.muted = true; // 靜音以確保自動載入
                             video.loop = true;  
-                            // 影片依原始長度，但最多不超過 40 秒
-                            video.onloadeddata = () => resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 40) });
+                            // 影片依原始長度，但最多不超過 20 秒
+                            video.onloadeddata = () => resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 20) });
                             video.onerror = reject;
                         } else {
                             const img = new Image();
