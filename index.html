@@ -179,21 +179,65 @@
                             video.src = url;
                             video.muted = true; // 靜音以確保自動載入
                             video.loop = true;  
-                            // 影片依原始長度，但最多不超過 20 秒
-                            video.onloadeddata = () => resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 20) });
-                            video.onerror = reject;
+                            
+                            // 【手機版關鍵修復】iOS Safari 必須加入 playsInline 才能在背景順利讀取
+                            video.playsInline = true;
+                            video.setAttribute('playsinline', '');
+
+                            let isResolved = false;
+
+                            // 【手機版關鍵修復】使用 onloadedmetadata 更輕量、更穩定
+                            video.onloadedmetadata = () => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 20) });
+                            };
+                            
+                            video.onerror = () => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'video', el: video, duration: 5 }); // 錯誤也強制放行
+                            };
+
+                            // 【手機版關鍵修復】2 秒防呆機制：如果瀏覽器強制阻擋載入，2秒後強制放行顯示按鈕
+                            setTimeout(() => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'video', el: video, duration: 5 });
+                            }, 2000);
+
+                            // 強制啟動載入
+                            video.load(); 
                         } else {
                             const img = new Image();
                             img.src = url;
-                            // 照片固定設定為 10 秒
-                            img.onload = () => resolve({ type: 'image', el: img, duration: 10 }); 
-                            img.onerror = reject;
+                            let isResolved = false;
+                            
+                            img.onload = () => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'image', el: img, duration: 10 }); 
+                            };
+                            img.onerror = () => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'image', el: img, duration: 10 }); // 錯誤也強制放行
+                            };
+                            
+                            setTimeout(() => {
+                                if(isResolved) return;
+                                isResolved = true;
+                                resolve({ type: 'image', el: img, duration: 10 });
+                            }, 2000);
                         }
                     });
                 }));
+                
+                // 讀取完畢，顯示開始製作按鈕
                 btnGenerate.classList.remove('hidden');
             } catch (err) {
-                errorMsg.textContent = "讀取檔案失敗，請確保檔案格式正確。";
+                console.error(err);
+                errorMsg.textContent = "讀取檔案失敗，請重新整理頁面。";
             }
         });
 
@@ -223,17 +267,21 @@
                 gainNode.connect(audioDest);
                 gainNode.connect(audioCtx.destination); // 預覽時播放
                 bgmElement.loop = true;
-                bgmElement.play();
+                bgmElement.play().catch(e => console.log("BGM 播放被阻擋：", e));
             }
 
             // 處理原始影片音效
             mediaElements.forEach(m => {
                 if (m.type === 'video' && !m.audioRouted) {
-                    const source = audioCtx.createMediaElementSource(m.el);
-                    source.connect(audioDest);
-                    source.connect(audioCtx.destination); 
-                    m.audioRouted = true; 
-                    m.el.muted = false; 
+                    try {
+                        const source = audioCtx.createMediaElementSource(m.el);
+                        source.connect(audioDest);
+                        source.connect(audioCtx.destination); 
+                        m.audioRouted = true; 
+                        m.el.muted = false; 
+                    } catch (e) {
+                        console.log("音軌連結錯誤：", e);
+                    }
                 }
             });
 
@@ -276,7 +324,7 @@
             
             for (let i = 0; i < mediaElements.length; i++) {
                 const media = mediaElements[i];
-                if (media.type === 'video') media.el.play();
+                if (media.type === 'video') media.el.play().catch(e => console.log("影片播放被阻擋：", e));
                 
                 await renderMediaContent(media, media.duration * 1000);
                 
