@@ -26,28 +26,33 @@
             <!-- 步驟一：上傳與設定 -->
             <div id="step-upload" class="text-center">
                 <h2 class="text-2xl font-bold mb-2">自動影片後製與錄製系統</h2>
-                <!-- 修改提示文字 -->
                 <p class="text-slate-500 mb-6">請上傳您的照片或短影片素材，系統將自動為您生成帶有 3D 翻頁特效的專屬直式短影音（照片固定 10 秒，影片最高 40 秒）。</p>
                 
                 <label class="block w-full cursor-pointer bg-slate-50 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all p-12 rounded-xl group mb-4">
                     <div class="flex flex-col items-center">
                         <svg class="w-12 h-12 text-blue-500 group-hover:text-blue-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                        <span id="file-label" class="text-blue-700 font-bold text-lg">點擊選擇多個媒體檔案</span>
+                        <span id="file-label" class="text-blue-700 font-bold text-lg">點擊選擇多個內頁媒體檔案</span>
                     </div>
                     <input type="file" id="file-input" class="hidden" accept="image/*,video/*" multiple />
                 </label>
                 <p id="error-msg" class="text-red-500 text-sm font-bold min-h-[20px]"></p>
                 
+                <!-- 自訂封面圖片輸入區 (新加入) -->
+                <div class="mb-8 bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-left">
+                    <h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-2">🖼️ 自訂首頁封面圖 <span class="text-sm text-indigo-600 font-normal">（選填，取代預設深藍書皮）</span></h3>
+                    <input type="file" id="cover-input" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer mt-2">
+                </div>
+
                 <!-- 品牌資訊輸入區 -->
                 <div class="mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200 text-left">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-200 pb-2">📝 設定品牌資訊</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">公司或品牌名稱 (顯示於片頭與浮水印)</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">公司或品牌名稱 (顯示於實體書封面與浮水印)</label>
                             <input type="text" id="input-company" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" value="宜仁居家有限公司">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">聯絡電話 (顯示於片尾)</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">聯絡電話 (顯示於實體書封底)</label>
                             <input type="text" id="input-phone" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" value="0919821208">
                         </div>
                     </div>
@@ -60,8 +65,8 @@
                     
                     <div class="mt-4 flex items-center gap-3">
                         <label class="text-sm font-medium text-slate-700 whitespace-nowrap">音樂音量：</label>
-                        <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="0.5" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
-                        <span id="volume-label" class="text-sm text-slate-600 font-bold w-12 text-right">50%</span>
+                        <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="0.2" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+                        <span id="volume-label" class="text-sm text-slate-600 font-bold w-12 text-right">20%</span>
                     </div>
                 </div>
 
@@ -74,7 +79,6 @@
             <div id="step-processing" class="hidden flex-col items-center justify-center py-12">
                 <div class="spinner mb-4"></div>
                 <h3 class="text-xl font-bold text-blue-900 mb-2">正在為您錄製影片...</h3>
-                <!-- 修改處理中提示文字 -->
                 <p class="text-slate-500 text-sm mb-6">請勿關閉視窗，正在進行 Canvas 逐格渲染與編碼 (照片 10 秒/影片最高 40 秒，請耐心等候)</p>
                 
                 <!-- A4 直立比例預覽畫布 -->
@@ -115,10 +119,23 @@
         
         let mediaElements = [];
         let bgmElement = null; 
+        let coverImageElement = null; // 儲存使用者上傳的封面圖
         let audioCtx = null;   
         
         let currentCompanyName = "宜仁居家有限公司";
         let currentPhone = "0919821208";
+
+        // 處理自訂封面圖片上傳
+        document.getElementById('cover-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                img.onload = () => { coverImageElement = img; };
+            } else {
+                coverImageElement = null;
+            }
+        });
 
         // 更新音量拉桿數值顯示
         document.getElementById('bgm-volume').addEventListener('input', (e) => {
@@ -144,7 +161,7 @@
             
             // 解除數量限制，僅驗證是否為空
             if (files.length === 0) {
-                errorMsg.textContent = `請至少選擇 1 個以上的檔案`;
+                errorMsg.textContent = `請至少選擇 1 個以上的內頁檔案`;
                 fileLabel.textContent = `尚未選擇檔案`;
                 return;
             }
@@ -162,13 +179,13 @@
                             video.src = url;
                             video.muted = true; // 靜音以確保自動載入
                             video.loop = true;  
-                            // [關鍵修改] 影片依原始長度，但最多不超過 40 秒 (加上 || 5 防呆避免讀取不到時長)
+                            // 影片依原始長度，但最多不超過 40 秒
                             video.onloadeddata = () => resolve({ type: 'video', el: video, duration: Math.min(video.duration || 5, 40) });
                             video.onerror = reject;
                         } else {
                             const img = new Image();
                             img.src = url;
-                            // [關鍵修改] 照片固定設定為 10 秒
+                            // 照片固定設定為 10 秒
                             img.onload = () => resolve({ type: 'image', el: img, duration: 10 }); 
                             img.onerror = reject;
                         }
@@ -252,53 +269,138 @@
             recorder.start();
 
             // === 開始 Canvas 動畫排程 ===
-            await renderTitleScreen(currentCompanyName, "AI 影像創作集", 2500);
+            
+            // 繪製精裝書封面 (書脊在左，停留 2.5 秒)
+            await renderBookCover(currentCompanyName, "影像與聲音創作集", 2500, false);
             
             for (let i = 0; i < mediaElements.length; i++) {
                 const media = mediaElements[i];
                 if (media.type === 'video') media.el.play();
                 
-                // 執行渲染，傳入 30 秒 (30000毫秒)
                 await renderMediaContent(media, media.duration * 1000);
                 
                 if (media.type === 'video') media.el.pause();
 
-                // 加入 3D 翻書轉場特效 (維持 1.2 秒的柔和轉場)
+                // 加入 3D 翻書轉場特效
                 if (i < mediaElements.length - 1) {
                     await renderTransition(media, mediaElements[i+1], 1200);
                 }
             }
             
-            await renderTitleScreen("感謝觀看", `指導講師專屬 / TEL: ${currentPhone}`, 3000);
+            // 繪製精裝書封底 (書脊在右，停留 3 秒)
+            await renderBookCover("感謝觀賞", `指導講師專屬 / TEL: ${currentPhone}`, 3000, true);
+            
             recorder.stop();
         }
 
         // ================= 輔助繪製函數 =================
         function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        async function renderTitleScreen(title, subtitle, durationMs) {
+        // 繪製精裝實體書封面/封底 (支援自訂封面圖片)
+        async function renderBookCover(title, subtitle, durationMs, isBackCover = false) {
             const start = performance.now();
             return new Promise(resolve => {
                 function draw(now) {
                     const progress = now - start;
-                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                    gradient.addColorStop(0, '#1e3a8a'); 
-                    gradient.addColorStop(1, '#2563eb'); 
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
+                    // 1. 書本底色與背景
+                    if (!isBackCover && coverImageElement) {
+                        // 若為封面且有上傳自訂圖片，將圖片滿版填滿畫布
+                        const imgRatio = coverImageElement.width / coverImageElement.height;
+                        const canvasRatio = canvas.width / canvas.height;
+                        let drawW = canvas.width;
+                        let drawH = canvas.height;
+                        let drawX = 0;
+                        let drawY = 0;
+
+                        if (imgRatio > canvasRatio) {
+                            drawW = canvas.height * imgRatio;
+                            drawX = (canvas.width - drawW) / 2;
+                        } else {
+                            drawH = canvas.width / imgRatio;
+                            drawY = (canvas.height - drawH) / 2;
+                        }
+                        ctx.drawImage(coverImageElement, drawX, drawY, drawW, drawH);
+                        
+                        // 加上深色高雅遮罩，提升文字與燙金框的辨識度
+                        ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else {
+                        // 預設深藍色精裝書皮質感 (或封底)
+                        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#1e3a8a'); 
+                        gradient.addColorStop(1, '#0f172a'); 
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                    
+                    // 2. 逼真書脊 (圓弧漸層陰影)
+                    const spineWidth = 100;
+                    if (isBackCover) {
+                        // 封底：書脊在右側 (代表書已翻完)
+                        const spineGrad = ctx.createLinearGradient(canvas.width - spineWidth, 0, canvas.width, 0);
+                        spineGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                        spineGrad.addColorStop(0.8, 'rgba(0,0,0,0.6)');
+                        spineGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
+                        ctx.fillStyle = spineGrad;
+                        ctx.fillRect(canvas.width - spineWidth, 0, spineWidth, canvas.height);
+                    } else {
+                        // 封面：書脊在左側
+                        const spineGrad = ctx.createLinearGradient(0, 0, spineWidth, 0);
+                        spineGrad.addColorStop(0, 'rgba(0,0,0,0.9)');
+                        spineGrad.addColorStop(0.2, 'rgba(0,0,0,0.6)');
+                        spineGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = spineGrad;
+                        ctx.fillRect(0, 0, spineWidth, canvas.height);
+                    }
+
+                    // 3. 精裝書燙金內邊框
+                    ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)'; // 琥珀/金色
+                    ctx.lineWidth = 6;
+                    const margin = 80;
+                    // 根據書脊位置調整內框的中心點
+                    const rectX = isBackCover ? margin : margin + 30;
+                    const rectWidth = canvas.width - (margin * 2) - 30;
+                    ctx.strokeRect(rectX, margin, rectWidth, canvas.height - margin * 2);
+                    
+                    // 燙金裝飾線 (內圈雙層線條)
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(rectX + 20, margin + 20, rectWidth - 40, canvas.height - margin * 2 - 40);
+
+                    // 4. 文字內容渲染
                     ctx.fillStyle = 'white';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+                    
+                    // 淡入特效
                     ctx.globalAlpha = Math.min(1, progress / 500);
                     
-                    ctx.font = 'bold 70px sans-serif';
-                    ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 20);
-                    ctx.font = '35px sans-serif';
-                    ctx.fillStyle = '#bfdbfe'; 
-                    ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 60);
+                    // 書名 (使用襯線字體增添文學質感)
+                    ctx.font = 'bold 85px "Georgia", "Times New Roman", "Songti TC", serif';
+                    // 增添文字立體陰影
+                    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetX = 4;
+                    ctx.shadowOffsetY = 4;
                     
+                    // 文字中心點也要跟著避開書脊
+                    const textCenterX = isBackCover ? canvas.width / 2 - 15 : canvas.width / 2 + 15;
+                    
+                    ctx.fillText(title, textCenterX, canvas.height / 2 - 60);
+                    
+                    // 副標題 / 聯絡資訊
+                    ctx.font = '40px "Georgia", "Times New Roman", "Songti TC", serif';
+                    ctx.fillStyle = '#fcd34d'; // 金黃色
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(subtitle, textCenterX, canvas.height / 2 + 80);
+                    
+                    // 重置環境變數，避免影響後續渲染
                     ctx.globalAlpha = 1.0;
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+
                     if (progress < durationMs) requestAnimationFrame(draw); else resolve();
                 }
                 requestAnimationFrame(draw);
@@ -307,7 +409,7 @@
 
         async function renderMediaContent(media, durationMs) {
             const start = performance.now();
-            const actualDuration = durationMs; // [關鍵修改] 移除 10 秒限制，確實執行傳入的 30 秒
+            const actualDuration = durationMs; 
             return new Promise(resolve => {
                 function draw(now) {
                     const progress = now - start;
