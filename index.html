@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宜仁居家 - AI 實體影片生成器</title>
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #2563eb; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* 優化 Placeholder 的顏色 */
+        ::placeholder { color: #94a3b8; opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col items-center py-12 px-4 text-slate-800">
@@ -20,12 +23,14 @@
             <p class="text-blue-200 mt-2 font-medium tracking-widest">AI 影片生成講師專屬工具 ｜ TEL: 0919821208</p>
         </div>
 
+        <!-- 互動區 -->
         <div class="p-8">
+            <!-- 步驟一：上傳與設定 -->
             <div id="step-upload" class="text-center">
                 <h2 class="text-2xl font-bold mb-2">自動影片後製與錄製系統</h2>
                 <p class="text-slate-500 mb-6">照片固定 10 秒，影片最高 20 秒，自動生成 3D 翻頁直式影片。</p>
                 
-                <label class="block w-full cursor-pointer bg-slate-50 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 p-12 rounded-xl group mb-4">
+                <label class="block w-full cursor-pointer bg-slate-50 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all p-12 rounded-xl group mb-4">
                     <div class="flex flex-col items-center">
                         <svg class="w-12 h-12 text-blue-500 group-hover:text-blue-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         <span id="file-label" class="text-blue-700 font-bold text-lg">點擊選擇多個內頁媒體檔案</span>
@@ -33,29 +38,32 @@
                     <input type="file" id="file-input" class="hidden" accept="image/*,video/*" multiple />
                 </label>
                 
+                <!-- 自訂封面圖片 -->
                 <div class="mb-8 bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-left">
                     <h3 class="text-lg font-bold text-indigo-900 mb-2 border-b border-indigo-200 pb-2">🖼️ 自訂首頁封面圖 <span class="text-sm text-indigo-600 font-normal">（選填）</span></h3>
                     <input type="file" id="cover-input" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-indigo-600 file:text-white cursor-pointer mt-2">
                 </div>
 
+                <!-- 品牌與標題資訊：預設空白，使用 Placeholder 提示 -->
                 <div class="mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200 text-left">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-200 pb-2">📝 設定品牌與標題資訊</h3>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">封面大標題 (影片主題)</label>
-                            <input type="text" id="input-maintitle" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" value="精選作品集">
+                            <input type="text" id="input-maintitle" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" placeholder="ＡＩ作品集">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">公司或品牌名稱</label>
-                            <input type="text" id="input-company" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" value="詠琳老師">
+                            <input type="text" id="input-company" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" placeholder="宜仁居家有限公司">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">聯絡電話</label>
-                            <input type="text" id="input-phone" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" value="0986415889">
+                            <input type="text" id="input-phone" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400" placeholder="0919-821208">
                         </div>
                     </div>
                 </div>
 
+                <!-- 背景音樂 -->
                 <div id="bgm-input-container" class="hidden mb-8 bg-blue-50 p-6 rounded-xl border border-blue-200 text-left">
                     <h3 class="text-lg font-bold text-blue-900 mb-2 border-b border-blue-200 pb-2">🎵 加入背景音樂</h3>
                     <input type="file" id="bgm-input" accept="audio/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-blue-600 file:text-white cursor-pointer mt-2">
@@ -69,6 +77,7 @@
                 <button id="btn-generate" class="hidden mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-lg">▶ 開始渲染並錄製實體影片</button>
             </div>
 
+            <!-- 步驟二：處理中畫面 -->
             <div id="step-processing" class="hidden flex-col items-center justify-center py-12">
                 <div class="spinner mb-4"></div>
                 <h3 class="text-xl font-bold text-blue-900 mb-2">正在為您錄製影片...</h3>
@@ -77,6 +86,7 @@
                 </div>
             </div>
 
+            <!-- 步驟三：下載畫面 -->
             <div id="step-download" class="hidden text-center py-8">
                 <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
@@ -133,9 +143,11 @@
         };
 
         btnGenerate.onclick = async () => {
-            currentCompanyName = document.getElementById('input-company').value.trim() || "詠琳老師";
-            currentPhone = document.getElementById('input-phone').value.trim() || "0986415889";
-            currentMainTitle = document.getElementById('input-maintitle').value.trim() || "精選作品集";
+            // 讀取輸入值，若為空則使用預設提示字串作為後備
+            currentCompanyName = document.getElementById('input-company').value.trim() || "宜仁居家有限公司";
+            currentPhone = document.getElementById('input-phone').value.trim() || "0919-821208";
+            currentMainTitle = document.getElementById('input-maintitle').value.trim() || "ＡＩ作品集";
+            
             document.getElementById('step-upload').classList.add('hidden');
             document.getElementById('step-processing').classList.remove('hidden');
             
@@ -169,17 +181,13 @@
             };
             recorder.start();
 
-            // 封面：大標題(中) -> 公司名(中下) -> 語句(下)
             await renderBookCover(currentMainTitle, currentCompanyName, "影像與聲音創作集", "", 2500, false);
-            
             for (let i = 0; i < mediaElements.length; i++) {
                 if (mediaElements[i].type === 'video') mediaElements[i].el.play().catch(e => console.log(e));
                 await renderMediaContent(mediaElements[i], mediaElements[i].duration * 1000);
                 if (mediaElements[i].type === 'video') mediaElements[i].el.pause();
                 if (i < mediaElements.length - 1) await renderTransition(mediaElements[i], mediaElements[i+1], 1200);
             }
-
-            // 封底：大標題(感謝觀賞) -> 公司名(品牌資訊) -> 促銷語
             await renderBookCover("感謝觀賞", `${currentCompanyName} / TEL: ${currentPhone}`, "來電詢問就送個人專屬影片一隻", "", 3000, true);
             recorder.stop();
         };
@@ -211,23 +219,10 @@
                     const tx = isBack ? canvas.width / 2 - 15 : canvas.width / 2 + 15;
                     const cy = canvas.height / 2;
 
-                    // 1. 封面大標題 (中心稍微偏上) - 120px
-                    ctx.font = 'bold 120px serif'; ctx.fillStyle = 'white'; 
-                    ctx.fillText(mainTitle, tx, cy - 40);
-
-                    // 2. 公司名稱 (大標題下方) - 65px (比標題小但比下方大)
-                    ctx.font = '65px serif'; ctx.fillStyle = '#fcd34d'; 
-                    ctx.fillText(subTitle, tx, cy + 110);
-
-                    // 3. 小標語 (公司名下方) - 40px
-                    ctx.font = '40px serif'; ctx.fillStyle = '#fcd34d'; 
-                    ctx.fillText(smallTitle, tx, cy + 200);
-
-                    // 4. 底部促銷文字 (最下方) - 32px
-                    if (footerText) { 
-                        ctx.font = '32px serif'; ctx.fillStyle = 'white'; 
-                        ctx.fillText(footerText, tx, cy + 280); 
-                    }
+                    ctx.font = 'bold 120px serif'; ctx.fillStyle = 'white'; ctx.fillText(mainTitle, tx, cy - 40);
+                    ctx.font = '65px serif'; ctx.fillStyle = '#fcd34d'; ctx.fillText(subTitle, tx, cy + 110);
+                    ctx.font = '40px serif'; ctx.fillStyle = '#fcd34d'; ctx.fillText(smallTitle, tx, cy + 200);
+                    if (footerText) { ctx.font = '32px serif'; ctx.fillStyle = 'white'; ctx.fillText(footerText, tx, cy + 280); }
 
                     ctx.globalAlpha = 1; ctx.shadowColor = 'transparent';
                     if (now - start < durationMs) requestAnimationFrame(draw); else res();
